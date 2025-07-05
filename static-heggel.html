@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heggel - Random Keyword Generator</title>
+    <meta name="description" content="A simple board game companion for generating random keywords. Roll for Heggel and get inspired with MTG-style keywords and abilities.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 24px 0;
+            margin-bottom: 32px;
+        }
+        
+        .header-content {
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 32px;
+        }
+        
+        .roll-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .current-keyword {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .keyword-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .keyword-display {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #1e293b;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .keyword-display.rolling {
+            opacity: 0.5;
+            transform: scale(0.9);
+        }
+        
+        .roll-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        
+        .roll-button:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -2px rgba(0,0,0,0.15);
+        }
+        
+        .roll-button:active {
+            transform: translateY(0);
+        }
+        
+        .roll-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .recent-results {
+            margin-bottom: 32px;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .clear-button {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+        
+        .clear-button:hover {
+            color: #374151;
+        }
+        
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .result-keyword {
+            font-weight: 500;
+            color: #1e293b;
+        }
+        
+        .result-time {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 48px 0;
+            color: #64748b;
+        }
+        
+        .keywords-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .keyword-item {
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        
+        footer {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 24px 0;
+            margin-top: 48px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .keyword-display {
+                font-size: 2rem;
+            }
+            
+            .roll-button {
+                font-size: 1.1rem;
+                padding: 14px 28px;
+            }
+            
+            .keywords-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1>Heggel</h1>
+                <p class="subtitle">At the beginning of combat on your turn, roll for heggel. This creature gains that ability until end of turn.</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Main Roll Section -->
+        <div class="card">
+            <div class="roll-section">
+                <div class="current-keyword">
+                    <div class="keyword-label">Current Keyword</div>
+                    <div class="keyword-display" id="keywordDisplay">Click to roll!</div>
+                </div>
+                
+                <button class="roll-button" id="rollButton">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M16 3H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/>
+                        <path d="M9 7h6"/>
+                        <path d="M9 11h6"/>
+                        <path d="M9 15h6"/>
+                    </svg>
+                    Roll for Heggel
+                </button>
+            </div>
+        </div>
+
+        <!-- Recent Results -->
+        <div class="card recent-results">
+            <div class="results-header">
+                <h2 class="section-title">Recent Results</h2>
+                <button class="clear-button" id="clearButton">Clear</button>
+            </div>
+            <div class="results-list" id="resultsList">
+                <div class="empty-state">
+                    No recent results yet. Roll for your first keyword!
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Keywords -->
+        <div class="card">
+            <h2 class="section-title">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                Available Keywords (<span id="keywordCount">22</span>)
+            </h2>
+            <div class="keywords-grid" id="keywordsGrid">
+                <!-- Keywords will be populated by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Heggel Game. Simple random keyword generator.</p>
+        </div>
+    </footer>
+
+    <script>
+        const KEYWORDS = [
+            "Double Strike",
+            "First Strike", 
+            "Vigilance",
+            "Flying",
+            "Reach",
+            "Trample",
+            "Indestructible",
+            "Lifelink",
+            "Extort",
+            "Deathtouch",
+            "Undying",
+            "Persist",
+            "Shroud",
+            "Haste",
+            "Hexproof",
+            "Decayed",
+            "Horsemanship",
+            "Battle Cry",
+            "Infect",
+            "Changeling",
+            "Defender",
+            "+1/+1",
+            "Alkoholvergiftung: -2/-2"
+        ];
+
+        let currentKeyword = '';
+        let recentResults = [];
+        let isRolling = false;
+
+        // DOM elements
+        const keywordDisplay = document.getElementById('keywordDisplay');
+        const rollButton = document.getElementById('rollButton');
+        const clearButton = document.getElementById('clearButton');
+        const resultsList = document.getElementById('resultsList');
+        const keywordsGrid = document.getElementById('keywordsGrid');
+        const keywordCount = document.getElementById('keywordCount');
+
+        // Initialize the app
+        function init() {
+            populateKeywordsGrid();
+            updateKeywordCount();
+            loadRecentResults();
+            updateResultsDisplay();
+        }
+
+        // Populate the keywords grid
+        function populateKeywordsGrid() {
+            keywordsGrid.innerHTML = '';
+            KEYWORDS.forEach(keyword => {
+                const keywordItem = document.createElement('div');
+                keywordItem.className = 'keyword-item';
+                keywordItem.textContent = keyword;
+                keywordsGrid.appendChild(keywordItem);
+            });
+        }
+
+        // Update keyword count
+        function updateKeywordCount() {
+            keywordCount.textContent = KEYWORDS.length;
+        }
+
+        // Roll for a random keyword
+        function rollKeyword() {
+            if (KEYWORDS.length === 0 || isRolling) return;
+
+            isRolling = true;
+            rollButton.disabled = true;
+            keywordDisplay.classList.add('rolling');
+
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * KEYWORDS.length);
+                const randomKeyword = KEYWORDS[randomIndex];
+                
+                currentKeyword = randomKeyword;
+                keywordDisplay.textContent = randomKeyword;
+                
+                // Add to recent results
+                const result = {
+                    keyword: randomKeyword,
+                    timestamp: new Date()
+                };
+                recentResults.unshift(result);
+                
+                // Keep only last 10 results
+                if (recentResults.length > 10) {
+                    recentResults = recentResults.slice(0, 10);
+                }
+                
+                saveRecentResults();
+                updateResultsDisplay();
+                
+                isRolling = false;
+                rollButton.disabled = false;
+                keywordDisplay.classList.remove('rolling');
+            }, 500);
+        }
+
+        // Clear recent results
+        function clearResults() {
+            recentResults = [];
+            saveRecentResults();
+            updateResultsDisplay();
+        }
+
+        // Update the results display
+        function updateResultsDisplay() {
+            if (recentResults.length === 0) {
+                resultsList.innerHTML = '<div class="empty-state">No recent results yet. Roll for your first keyword!</div>';
+                return;
+            }
+
+            resultsList.innerHTML = '';
+            recentResults.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <span class="result-keyword">${result.keyword}</span>
+                    <span class="result-time">${formatTimestamp(result.timestamp)}</span>
+                `;
+                resultsList.appendChild(resultItem);
+            });
+        }
+
+        // Format timestamp for display
+        function formatTimestamp(timestamp) {
+            const now = new Date();
+            const date = new Date(timestamp);
+            const diffMs = now.getTime() - date.getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return "Just now";
+            if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+            
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            
+            const diffDays = Math.floor(diffHours / 24);
+            return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        }
+
+        // Save recent results to localStorage
+        function saveRecentResults() {
+            localStorage.setItem('heggel-recent-results', JSON.stringify(recentResults));
+        }
+
+        // Load recent results from localStorage
+        function loadRecentResults() {
+            const saved = localStorage.getItem('heggel-recent-results');
+            if (saved) {
+                try {
+                    recentResults = JSON.parse(saved);
+                    // Convert timestamp strings back to Date objects
+                    recentResults = recentResults.map(result => ({
+                        ...result,
+                        timestamp: new Date(result.timestamp)
+                    }));
+                } catch (e) {
+                    recentResults = [];
+                }
+            }
+        }
+
+        // Event listeners
+        rollButton.addEventListener('click', rollKeyword);
+        clearButton.addEventListener('click', clearResults);
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Update timestamps every minute
+        setInterval(updateResultsDisplay, 60000);
+    </script>
+</body>
+</html>
